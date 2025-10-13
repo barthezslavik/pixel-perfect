@@ -344,7 +344,7 @@ function drawAllMeasurements() {
     let svgContent = '';
     let measurementCount = 0;
     const maxMeasurements = 100; // Limit total measurements
-    const maxDimensions = 50; // Limit element dimensions
+    const maxDimensions = 100; // Limit element dimensions (increased from 50)
 
     // Find all visible containers with multiple children
     const allElements = document.querySelectorAll('body *');
@@ -354,10 +354,10 @@ function drawAllMeasurements() {
     for (const element of allElements) {
       if (measurementCount >= maxMeasurements) break;
 
-      // Skip invisible or excluded elements
+      // Skip invisible or excluded elements (removed SVG from exclusion list)
       if (element.offsetWidth === 0 ||
           element.offsetHeight === 0 ||
-          ['SCRIPT', 'STYLE', 'NOSCRIPT', 'META', 'LINK', 'TITLE', 'SVG'].includes(element.tagName)) {
+          ['SCRIPT', 'STYLE', 'NOSCRIPT', 'META', 'LINK', 'TITLE'].includes(element.tagName)) {
         continue;
       }
 
@@ -372,7 +372,8 @@ function drawAllMeasurements() {
       // Draw element dimensions (width and height) for some elements
       if (showDimensions && processedDimensions.size < maxDimensions) {
         const dimKey = `${rect.left}-${rect.top}-${rect.width}-${rect.height}`;
-        if (!processedDimensions.has(dimKey) && rect.width > 50 && rect.height > 50) {
+        // Lowered minimum size from 50x50 to 20x20 to catch more elements like <p>, <span>, etc.
+        if (!processedDimensions.has(dimKey) && rect.width > 20 && rect.height > 20) {
           svgContent += getElementDimensionsHTML(rect);
           processedDimensions.add(dimKey);
         }
