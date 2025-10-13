@@ -4,11 +4,17 @@
 let spacingGridActive = false;
 let svgOverlay = null;
 let fontInfoContainer = null;
+let gridOverlay = null;
+let colorInfoContainer = null;
+let effectsInfoContainer = null;
 let isDrawing = false;
 let scrollTimeout = null;
 let showSpacing = false;
 let showDimensions = false;
 let showFontInfo = false;
+let showGrid = false;
+let showColors = false;
+let showEffects = false;
 
 // Initialize extension
 chrome.storage.local.get('isActive', (data) => {
@@ -43,6 +49,15 @@ function initSpacingGrid() {
   // Create font info container
   createFontInfoContainer();
 
+  // Create grid overlay
+  createGridOverlay();
+
+  // Create color info container
+  createColorInfoContainer();
+
+  // Create effects info container
+  createEffectsInfoContainer();
+
   // Add keyboard listener for toggle
   document.addEventListener('keydown', handleKeyDown, true);
 
@@ -50,11 +65,11 @@ function initSpacingGrid() {
   window.addEventListener('scroll', handleScroll, true);
   window.addEventListener('resize', handleScroll, true);
 
-  console.log('Spacing Grid: Initialized (press 1 for spacing, 2 for dimensions, 3 for font info)');
+  console.log('Pixel Perfect: Initialized (1:spacing 2:dimensions 3:fonts 4:grid 5:colors 6:effects)');
 }
 
 function handleScroll() {
-  if (!spacingGridActive || (!showSpacing && !showDimensions && !showFontInfo) || isDrawing) return;
+  if (!spacingGridActive || (!showSpacing && !showDimensions && !showFontInfo && !showColors && !showEffects) || isDrawing) return;
 
   // Clear previous timeout
   if (scrollTimeout) {
@@ -63,7 +78,7 @@ function handleScroll() {
 
   // Use requestAnimationFrame for smooth updates
   scrollTimeout = requestAnimationFrame(() => {
-    if (spacingGridActive && (showSpacing || showDimensions || showFontInfo) && !isDrawing) {
+    if (spacingGridActive && (showSpacing || showDimensions || showFontInfo || showColors || showEffects) && !isDrawing) {
       drawAllMeasurements();
     }
   });
@@ -80,7 +95,7 @@ function handleKeyDown(event) {
     event.preventDefault();
     showSpacing = !showSpacing;
 
-    if (showSpacing || showDimensions || showFontInfo) {
+    if (showSpacing || showDimensions || showFontInfo || showColors || showEffects) {
       drawAllMeasurements();
     } else {
       clearMeasurements();
@@ -94,7 +109,7 @@ function handleKeyDown(event) {
     event.preventDefault();
     showDimensions = !showDimensions;
 
-    if (showSpacing || showDimensions || showFontInfo) {
+    if (showSpacing || showDimensions || showFontInfo || showColors || showEffects) {
       drawAllMeasurements();
     } else {
       clearMeasurements();
@@ -108,13 +123,55 @@ function handleKeyDown(event) {
     event.preventDefault();
     showFontInfo = !showFontInfo;
 
-    if (showSpacing || showDimensions || showFontInfo) {
+    if (showSpacing || showDimensions || showFontInfo || showGrid || showColors || showEffects) {
       drawAllMeasurements();
     } else {
       clearMeasurements();
     }
 
     showToggleIndicator(showFontInfo ? 'Font Info ON' : 'Font Info OFF');
+  }
+
+  // Press 4 to toggle grid
+  if (event.key === '4') {
+    event.preventDefault();
+    showGrid = !showGrid;
+
+    if (showGrid) {
+      drawGrid();
+    } else {
+      clearGrid();
+    }
+
+    showToggleIndicator(showGrid ? 'Grid ON' : 'Grid OFF');
+  }
+
+  // Press 5 to toggle colors
+  if (event.key === '5') {
+    event.preventDefault();
+    showColors = !showColors;
+
+    if (showSpacing || showDimensions || showFontInfo || showColors || showEffects) {
+      drawAllMeasurements();
+    } else {
+      clearMeasurements();
+    }
+
+    showToggleIndicator(showColors ? 'Colors ON' : 'Colors OFF');
+  }
+
+  // Press 6 to toggle effects
+  if (event.key === '6') {
+    event.preventDefault();
+    showEffects = !showEffects;
+
+    if (showSpacing || showDimensions || showFontInfo || showColors || showEffects) {
+      drawAllMeasurements();
+    } else {
+      clearMeasurements();
+    }
+
+    showToggleIndicator(showEffects ? 'Effects ON' : 'Effects OFF');
   }
 }
 
@@ -222,6 +279,60 @@ function createFontInfoContainer() {
   document.body.appendChild(fontInfoContainer);
 }
 
+function createGridOverlay() {
+  if (gridOverlay) return;
+
+  gridOverlay = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  gridOverlay.id = 'grid-overlay';
+  gridOverlay.style.cssText = `
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 2147483645;
+  `;
+
+  document.body.appendChild(gridOverlay);
+}
+
+function createColorInfoContainer() {
+  if (colorInfoContainer) return;
+
+  colorInfoContainer = document.createElement('div');
+  colorInfoContainer.id = 'color-info-container';
+  colorInfoContainer.style.cssText = `
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 2147483646;
+  `;
+
+  document.body.appendChild(colorInfoContainer);
+}
+
+function createEffectsInfoContainer() {
+  if (effectsInfoContainer) return;
+
+  effectsInfoContainer = document.createElement('div');
+  effectsInfoContainer.id = 'effects-info-container';
+  effectsInfoContainer.style.cssText = `
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 2147483646;
+  `;
+
+  document.body.appendChild(effectsInfoContainer);
+}
+
 function drawAllMeasurements() {
   if (!svgOverlay || isDrawing) return;
 
@@ -296,6 +407,16 @@ function drawAllMeasurements() {
     // Draw font info if enabled
     if (showFontInfo) {
       drawFontInfo();
+    }
+
+    // Draw colors if enabled
+    if (showColors) {
+      drawColors();
+    }
+
+    // Draw effects if enabled
+    if (showEffects) {
+      drawEffects();
     }
 
   } finally {
@@ -656,6 +777,12 @@ function clearMeasurements() {
   if (fontInfoContainer) {
     fontInfoContainer.innerHTML = '';
   }
+  if (colorInfoContainer) {
+    colorInfoContainer.innerHTML = '';
+  }
+  if (effectsInfoContainer) {
+    effectsInfoContainer.innerHTML = '';
+  }
 }
 
 function removeSpacingGrid() {
@@ -682,6 +809,24 @@ function removeSpacingGrid() {
     fontInfoContainer = null;
   }
 
+  // Remove grid overlay
+  if (gridOverlay) {
+    gridOverlay.remove();
+    gridOverlay = null;
+  }
+
+  // Remove color info container
+  if (colorInfoContainer) {
+    colorInfoContainer.remove();
+    colorInfoContainer = null;
+  }
+
+  // Remove effects info container
+  if (effectsInfoContainer) {
+    effectsInfoContainer.remove();
+    effectsInfoContainer = null;
+  }
+
   // Remove all indicators
   const indicator = document.getElementById('spacing-toggle-indicator');
   if (indicator) indicator.remove();
@@ -694,6 +839,275 @@ function removeSpacingGrid() {
   showSpacing = false;
   showDimensions = false;
   showFontInfo = false;
+  showGrid = false;
+  showColors = false;
+  showEffects = false;
 
-  console.log('Spacing Grid: Removed');
+  console.log('Pixel Perfect: Removed');
+}
+
+// Grid functions
+function drawGrid() {
+  if (!gridOverlay) return;
+
+  const gridSize = 8; // 8px grid
+  const width = window.innerWidth;
+  const height = window.innerHeight;
+
+  let gridContent = '';
+
+  // Draw vertical lines
+  for (let x = 0; x <= width; x += gridSize) {
+    gridContent += `<line x1="${x}" y1="0" x2="${x}" y2="${height}" stroke="rgba(255, 0, 255, 0.15)" stroke-width="1"/>`;
+  }
+
+  // Draw horizontal lines
+  for (let y = 0; y <= height; y += gridSize) {
+    gridContent += `<line x1="0" y1="${y}" x2="${width}" y2="${y}" stroke="rgba(255, 0, 255, 0.15)" stroke-width="1"/>`;
+  }
+
+  gridOverlay.innerHTML = gridContent;
+  console.log(`Drew 8px grid overlay`);
+}
+
+function clearGrid() {
+  if (!gridOverlay) return;
+  gridOverlay.innerHTML = '';
+}
+
+// Color functions
+function drawColors() {
+  if (!colorInfoContainer) return;
+
+  // Clear previous colors
+  colorInfoContainer.innerHTML = '';
+
+  const allElements = document.querySelectorAll('body *');
+  const colorMap = new Map(); // color -> count
+  const maxColors = 20;
+
+  // Collect colors
+  for (const element of allElements) {
+    if (element.offsetWidth === 0 || element.offsetHeight === 0) continue;
+    if (['SCRIPT', 'STYLE', 'NOSCRIPT', 'META', 'LINK', 'TITLE'].includes(element.tagName)) continue;
+
+    const styles = window.getComputedStyle(element);
+    const bgColor = styles.backgroundColor;
+    const textColor = styles.color;
+
+    // Skip transparent
+    if (bgColor && bgColor !== 'rgba(0, 0, 0, 0)' && bgColor !== 'transparent') {
+      colorMap.set(bgColor, (colorMap.get(bgColor) || 0) + 1);
+    }
+    if (textColor && textColor !== 'rgba(0, 0, 0, 0)' && textColor !== 'transparent') {
+      colorMap.set(textColor, (colorMap.get(textColor) || 0) + 1);
+    }
+  }
+
+  // Sort by frequency
+  const sortedColors = Array.from(colorMap.entries())
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, maxColors);
+
+  // Create color palette panel
+  const panel = document.createElement('div');
+  panel.style.cssText = `
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: rgba(0, 0, 0, 0.92);
+    color: white;
+    padding: 12px;
+    border-radius: 6px;
+    font-family: Monaco, monospace;
+    font-size: 10px;
+    max-height: 600px;
+    overflow-y: auto;
+    pointer-events: none;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    z-index: 2147483646;
+  `;
+
+  let paletteHTML = '<div style="color: #fbbf24; font-weight: bold; margin-bottom: 8px; font-size: 11px;">Color Palette</div>';
+
+  sortedColors.forEach(([color, count]) => {
+    const hexColor = rgbToHex(color);
+    paletteHTML += `
+      <div style="display: flex; align-items: center; margin-bottom: 6px;">
+        <div style="width: 24px; height: 24px; background: ${color}; border: 1px solid rgba(255,255,255,0.3); margin-right: 8px; border-radius: 3px;"></div>
+        <div style="flex: 1;">
+          <div style="color: white;">${hexColor}</div>
+          <div style="color: #64748b; font-size: 9px;">${color}</div>
+        </div>
+        <div style="color: #64748b; font-size: 9px; margin-left: 8px;">${count}×</div>
+      </div>
+    `;
+  });
+
+  panel.innerHTML = paletteHTML;
+  colorInfoContainer.appendChild(panel);
+
+  console.log(`Drew ${sortedColors.length} colors`);
+}
+
+function rgbToHex(rgb) {
+  const result = rgb.match(/\d+/g);
+  if (!result || result.length < 3) return rgb;
+
+  const r = parseInt(result[0]);
+  const g = parseInt(result[1]);
+  const b = parseInt(result[2]);
+
+  return '#' + [r, g, b].map(x => {
+    const hex = x.toString(16);
+    return hex.length === 1 ? '0' + hex : hex;
+  }).join('');
+}
+
+// Effects functions
+function drawEffects() {
+  if (!effectsInfoContainer) return;
+
+  // Clear previous effects
+  effectsInfoContainer.innerHTML = '';
+
+  const allElements = document.querySelectorAll('body *');
+  const processedElements = new Set();
+  const maxEffects = 30;
+  let effectsCount = 0;
+  const cardPositions = [];
+
+  for (const element of allElements) {
+    if (effectsCount >= maxEffects) break;
+
+    if (element.offsetWidth === 0 || element.offsetHeight === 0) continue;
+    if (['SCRIPT', 'STYLE', 'NOSCRIPT', 'META', 'LINK', 'TITLE', 'SVG', 'PATH', 'G'].includes(element.tagName)) continue;
+
+    const rect = element.getBoundingClientRect();
+
+    // Skip elements outside viewport
+    if (rect.bottom < 0 || rect.top > window.innerHeight ||
+        rect.right < 0 || rect.left > window.innerWidth) {
+      continue;
+    }
+
+    // Skip very small elements
+    if (rect.width < 30 || rect.height < 30) continue;
+
+    const posKey = `${Math.round(rect.left)}-${Math.round(rect.top)}`;
+    if (processedElements.has(posKey)) continue;
+
+    const styles = window.getComputedStyle(element);
+    const boxShadow = styles.boxShadow;
+    const borderRadius = styles.borderRadius;
+    const border = styles.border;
+
+    // Check if element has effects
+    const hasEffects = (boxShadow && boxShadow !== 'none') ||
+                       (borderRadius && borderRadius !== '0px') ||
+                       (border && border !== 'none' && !border.startsWith('0px'));
+
+    if (!hasEffects) continue;
+
+    const effectsInfo = {
+      boxShadow: boxShadow !== 'none' ? boxShadow : null,
+      borderRadius: borderRadius !== '0px' ? borderRadius : null,
+      border: border !== 'none' && !border.startsWith('0px') ? border : null
+    };
+
+    const cardData = createEffectsCard(rect, effectsInfo, cardPositions);
+
+    if (cardData) {
+      effectsInfoContainer.appendChild(cardData.element);
+      cardPositions.push(cardData.bounds);
+      processedElements.add(posKey);
+      effectsCount++;
+    }
+  }
+
+  console.log(`Drew ${effectsCount} effects cards`);
+}
+
+function createEffectsCard(rect, effectsInfo, existingCards) {
+  const card = document.createElement('div');
+
+  const cardWidth = 180;
+  const cardHeight = 100;
+
+  const positions = [
+    { x: rect.right + 10, y: rect.top },
+    { x: rect.left - cardWidth - 10, y: rect.top },
+    { x: rect.right + 10, y: rect.bottom + 5 },
+    { x: rect.left, y: rect.bottom + 5 },
+  ];
+
+  let finalPosition = null;
+
+  for (const pos of positions) {
+    const testBounds = {
+      left: pos.x,
+      top: pos.y,
+      right: pos.x + cardWidth,
+      bottom: pos.y + cardHeight
+    };
+
+    if (testBounds.right > window.innerWidth || testBounds.left < 0) continue;
+
+    const overlaps = existingCards.some(existing =>
+      !(testBounds.right < existing.left ||
+        testBounds.left > existing.right ||
+        testBounds.bottom < existing.top ||
+        testBounds.top > existing.bottom)
+    );
+
+    if (!overlaps) {
+      finalPosition = { x: pos.x, y: pos.y, bounds: testBounds };
+      break;
+    }
+  }
+
+  if (!finalPosition) return null;
+
+  card.style.cssText = `
+    position: absolute;
+    left: ${finalPosition.x}px;
+    top: ${finalPosition.y}px;
+    background: rgba(0, 0, 0, 0.92);
+    color: white;
+    padding: 6px 8px;
+    border-radius: 3px;
+    font-family: Monaco, monospace;
+    font-size: 9px;
+    line-height: 1.4;
+    pointer-events: none;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    white-space: nowrap;
+    max-width: ${cardWidth}px;
+  `;
+
+  let effectsHTML = '<div style="color: #a78bfa; font-weight: bold; font-size: 10px; margin-bottom: 3px;">Effects</div>';
+
+  if (effectsInfo.boxShadow) {
+    effectsHTML += `<div><span style="color: #64748b;">Shadow:</span> ${shortenValue(effectsInfo.boxShadow, 25)}</div>`;
+  }
+  if (effectsInfo.borderRadius) {
+    effectsHTML += `<div><span style="color: #64748b;">Radius:</span> ${effectsInfo.borderRadius}</div>`;
+  }
+  if (effectsInfo.border) {
+    effectsHTML += `<div><span style="color: #64748b;">Border:</span> ${shortenValue(effectsInfo.border, 25)}</div>`;
+  }
+
+  card.innerHTML = effectsHTML;
+
+  return {
+    element: card,
+    bounds: finalPosition.bounds
+  };
+}
+
+function shortenValue(value, maxLength) {
+  if (value.length <= maxLength) return value;
+  return value.substring(0, maxLength) + '...';
 }

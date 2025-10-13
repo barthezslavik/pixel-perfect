@@ -1,8 +1,8 @@
 {
-  "name": "Figma Spacing Grid",
+  "name": "Pixel Perfect",
   "manifest_version": 3,
-  "version": "1.0.0",
-  "description": "Visualize distances between elements with dimension lines and arrows, like architectural drawings",
+  "version": "2.0.0",
+  "description": "Complete pixel-perfect toolkit: spacing, dimensions, fonts, grid, colors, and effects visualization",
   "permissions": [
     "activeTab",
     "scripting",
@@ -12,7 +12,7 @@
     "service_worker": "background.js"
   },
   "action": {
-    "default_title": "Toggle Spacing Grid"
+    "default_title": "Toggle Pixel Perfect"
   },
   "content_scripts": [
     {
