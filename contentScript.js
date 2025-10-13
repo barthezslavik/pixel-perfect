@@ -65,7 +65,7 @@ function initSpacingGrid() {
   window.addEventListener('scroll', handleScroll, true);
   window.addEventListener('resize', handleScroll, true);
 
-  console.log('Pixel Perfect: Initialized (1:spacing 2:dimensions 3:fonts 4:grid 5:colors 6:effects)');
+  console.log('Pixel Perfect: Initialized (1:dimensions 2:spacing 3:fonts 4:grid 5:colors 6:effects)');
 }
 
 function handleScroll() {
@@ -90,22 +90,8 @@ function handleKeyDown(event) {
   // Don't trigger in input fields
   if (event.target.matches('input, textarea, [contenteditable="true"]')) return;
 
-  // Press 1 to toggle spacing
+  // Press 1 to toggle dimensions
   if (event.key === '1') {
-    event.preventDefault();
-    showSpacing = !showSpacing;
-
-    if (showSpacing || showDimensions || showFontInfo || showColors || showEffects) {
-      drawAllMeasurements();
-    } else {
-      clearMeasurements();
-    }
-
-    showToggleIndicator(showSpacing ? 'Spacing ON' : 'Spacing OFF');
-  }
-
-  // Press 2 to toggle dimensions
-  if (event.key === '2') {
     event.preventDefault();
     showDimensions = !showDimensions;
 
@@ -118,12 +104,26 @@ function handleKeyDown(event) {
     showToggleIndicator(showDimensions ? 'Dimensions ON' : 'Dimensions OFF');
   }
 
+  // Press 2 to toggle spacing
+  if (event.key === '2') {
+    event.preventDefault();
+    showSpacing = !showSpacing;
+
+    if (showSpacing || showDimensions || showFontInfo || showColors || showEffects) {
+      drawAllMeasurements();
+    } else {
+      clearMeasurements();
+    }
+
+    showToggleIndicator(showSpacing ? 'Spacing ON' : 'Spacing OFF');
+  }
+
   // Press 3 to toggle font info
   if (event.key === '3') {
     event.preventDefault();
     showFontInfo = !showFontInfo;
 
-    if (showSpacing || showDimensions || showFontInfo || showGrid || showColors || showEffects) {
+    if (showSpacing || showDimensions || showFontInfo || showColors || showEffects) {
       drawAllMeasurements();
     } else {
       clearMeasurements();
@@ -408,16 +408,22 @@ function drawAllMeasurements() {
     // Draw font info if enabled
     if (showFontInfo) {
       drawFontInfo();
+    } else {
+      if (fontInfoContainer) fontInfoContainer.innerHTML = '';
     }
 
     // Draw colors if enabled
     if (showColors) {
       drawColors();
+    } else {
+      if (colorInfoContainer) colorInfoContainer.innerHTML = '';
     }
 
     // Draw effects if enabled
     if (showEffects) {
       drawEffects();
+    } else {
+      if (effectsInfoContainer) effectsInfoContainer.innerHTML = '';
     }
 
   } finally {
