@@ -1,0 +1,25 @@
+{
+  "name": "Figma Spacing Grid",
+  "manifest_version": 3,
+  "version": "1.0.0",
+  "description": "Visualize distances between elements with dimension lines and arrows, like architectural drawings",
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "storage"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_title": "Toggle Spacing Grid"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["contentScript.js"],
+      "css": ["spacing-grid.css"],
+      "run_at": "document_idle"
+    }
+  ]
+}

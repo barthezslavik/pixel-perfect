@@ -1,0 +1,20 @@
+/* Figma Spacing Grid - Styles for SVG overlay */
+
+#spacing-grid-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 2147483647;
+}
+
+/* Smooth transitions for measurements */
+.spacing-dimension {
+  transition: opacity 0.2s ease;
+}
+
+.spacing-highlight {
+  transition: all 0.2s ease;
+}
