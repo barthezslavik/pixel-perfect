@@ -690,6 +690,35 @@ function getFontInfo(element) {
   };
 }
 
+function hashStringToColor(str) {
+  // Predefined rainbow colors palette (12 colors)
+  const rainbowColors = [
+    '#FF6B6B', // Red
+    '#FF8E53', // Orange
+    '#FFA94D', // Light Orange
+    '#FFD93D', // Yellow
+    '#A8E6CF', // Mint
+    '#6BCF7F', // Green
+    '#4ECDC4', // Turquoise
+    '#45B7D1', // Light Blue
+    '#5B9BD5', // Blue
+    '#8E7CC3', // Purple
+    '#C77DFF', // Violet
+    '#FF69B4'  // Pink
+  ];
+
+  // Generate hash from string
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = str.charCodeAt(i) + ((hash << 5) - hash);
+    hash = hash & hash; // Convert to 32bit integer
+  }
+
+  // Select color from palette
+  const colorIndex = Math.abs(hash) % rainbowColors.length;
+  return rainbowColors[colorIndex];
+}
+
 function createFontInfoCard(rect, fontInfo, existingCards) {
   const card = document.createElement('div');
 
@@ -701,6 +730,10 @@ function createFontInfoCard(rect, fontInfo, existingCards) {
   // Compact font family name
   const fontFamily = fontInfo.fontFamily.split(',')[0].replace(/['"]/g, '').trim();
   const shortFontFamily = fontFamily.length > 18 ? fontFamily.substring(0, 18) + '...' : fontFamily;
+
+  // Generate color based on font family name + size + weight
+  const fontKey = `${fontFamily}-${Math.round(fontSize)}px-${fontInfo.fontWeight}`;
+  const fontColor = hashStringToColor(fontKey);
 
   // Estimate card dimensions (compact)
   const cardWidth = 160;
@@ -751,7 +784,7 @@ function createFontInfoCard(rect, fontInfo, existingCards) {
     position: absolute;
     left: ${finalPosition.x}px;
     top: ${finalPosition.y}px;
-    background: rgba(0, 0, 0, 0.92);
+    background: ${fontColor};
     color: white;
     padding: 6px 8px;
     border-radius: 3px;
@@ -759,16 +792,14 @@ function createFontInfoCard(rect, fontInfo, existingCards) {
     font-size: 10px;
     line-height: 1.4;
     pointer-events: none;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
-    border: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+    border: 2px solid rgba(255, 255, 255, 0.2);
     white-space: nowrap;
   `;
 
   card.innerHTML = `
-    <div style="color: #fbbf24; font-weight: bold; font-size: 11px; margin-bottom: 3px;">${shortFontFamily}</div>
-    <div><span style="color: #64748b;">${Math.round(fontSize)}px</span> · <span style="color: #64748b;">w${fontInfo.fontWeight}</span></div>
-    <div><span style="color: #64748b;">lh:</span>${lineHeightDisplay} · <span style="color: #64748b;">ls:</span>${letterSpacing}</div>
-    <div style="color: ${fontInfo.color}; font-size: 9px; margin-top: 2px;">■ ${fontInfo.color}</div>
+    <div style="color: white; font-weight: bold; font-size: 11px; margin-bottom: 3px;">${shortFontFamily}</div>
+    <div style="color: white;">${Math.round(fontSize)}px · w${fontInfo.fontWeight}</div>
   `;
 
   return {
